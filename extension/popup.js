@@ -339,9 +339,20 @@
     });
 
     listEl.addEventListener('click', (e) => {
+      const actBtn = e.target.closest('button[data-act]');
+      if (actBtn) {
+        e.stopPropagation();
+        const id = actBtn.dataset.id;
+        if (actBtn.dataset.act === 'delete') deleteNoteById(id);
+        else if (actBtn.dataset.act === 'edit') openNote(id, 'edit');
+        return;
+      }
       const card = e.target.closest('.note-card');
-      if (card) openNote(card.dataset.id);
+      if (card) openNote(card.dataset.id, 'read');
     });
+
+    $('#btn-edit').addEventListener('click', () => setMode('edit'));
+    $('#btn-done').addEventListener('click', () => setMode('read'));
 
     titleInput.addEventListener('input', scheduleSave);
     editorEl.addEventListener('input', scheduleSave);
