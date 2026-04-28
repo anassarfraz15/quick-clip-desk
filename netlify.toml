@@ -1,0 +1,17 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA fallback for client-side routing (React Router)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Force the extension zip to download with correct headers
+[[headers]]
+  for = "/quicknotes-extension.zip"
+  [headers.values]
+    Content-Type = "application/zip"
+    Content-Disposition = "attachment; filename=\"quicknotes-extension.zip\""
+    Cache-Control = "public, max-age=0, must-revalidate"
