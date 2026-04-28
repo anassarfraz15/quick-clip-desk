@@ -5,19 +5,13 @@ const PRIMARY = "#7C5CFF";
 
 const Index = () => {
   const handleDownload = () => {
-    fetch("/quicknotes-extension.zip")
-      .then((res) => {
-        if (!res.ok) throw new Error(`Download failed: ${res.status}`);
-        return res.blob();
-      })
-      .then((blob) => {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "quicknotes-extension.zip";
-        a.click();
-        URL.revokeObjectURL(a.href);
-      })
-      .catch((err) => alert(err.message));
+    // Direct anchor download — works perfectly on Netlify static hosting.
+    const a = document.createElement("a");
+    a.href = "/quicknotes-extension.zip";
+    a.download = "quicknotes-extension.zip";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   const features = [
