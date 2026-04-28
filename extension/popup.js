@@ -117,6 +117,14 @@
           ${n.pinned ? `<span class="note-pin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2z"/></svg></span>` : ''}
         </div>
         <div class="note-preview">${escapeHtml(plainPreview(n.body)) || '<em style="opacity:.6">Empty note</em>'}</div>
+        <div class="note-actions">
+          <button data-act="edit" data-id="${n.id}" title="Edit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+          <button class="danger" data-act="delete" data-id="${n.id}" title="Delete">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
+        </div>
       </div>
     `).join('');
   }
@@ -150,9 +158,18 @@
   }
 
   // --- actions ---
-  function openNote(id) {
+  const editorView = document.querySelector('.editor-view');
+  function setMode(mode) {
+    editorView.dataset.mode = mode;
+    const editing = mode === 'edit';
+    editorEl.setAttribute('contenteditable', editing ? 'true' : 'false');
+    if (editing) titleInput.removeAttribute('readonly');
+    else titleInput.setAttribute('readonly', '');
+  }
+  function openNote(id, mode = 'read') {
     state.selectedId = id;
     app.dataset.view = 'editor';
+    setMode(mode);
     renderEditor();
     renderList();
   }
@@ -176,19 +193,28 @@
     };
     state.notes.unshift(n);
     persist();
-    openNote(n.id);
+    openNote(n.id, 'edit');
     setTimeout(() => titleInput.focus(), 60);
     return n;
   }
 
+  function deleteNoteById(id) {
+    if (!confirm('Delete this note?')) return;
+    state.notes = state.notes.filter(n => n.id !== id);
+    if (state.selectedId === id) {
+      state.selectedId = null;
+      backToList();
+    } else {
+      renderList();
+    }
+    persist();
+  }
+
   function deleteCurrent() {
     if (!state.selectedId) return;
-    if (!confirm('Delete this note?')) return;
-    state.notes = state.notes.filter(n => n.id !== state.selectedId);
-    state.selectedId = null;
-    persist();
-    backToList();
+    deleteNoteById(state.selectedId);
   }
+
 
   function scheduleSave() {
     const n = state.notes.find(x => x.id === state.selectedId);
@@ -313,9 +339,20 @@
     });
 
     listEl.addEventListener('click', (e) => {
+      const actBtn = e.target.closest('button[data-act]');
+      if (actBtn) {
+        e.stopPropagation();
+        const id = actBtn.dataset.id;
+        if (actBtn.dataset.act === 'delete') deleteNoteById(id);
+        else if (actBtn.dataset.act === 'edit') openNote(id, 'edit');
+        return;
+      }
       const card = e.target.closest('.note-card');
-      if (card) openNote(card.dataset.id);
+      if (card) openNote(card.dataset.id, 'read');
     });
+
+    $('#btn-edit').addEventListener('click', () => setMode('edit'));
+    $('#btn-done').addEventListener('click', () => setMode('read'));
 
     titleInput.addEventListener('input', scheduleSave);
     editorEl.addEventListener('input', scheduleSave);

@@ -144,6 +144,7 @@ input, textarea { font-family: inherit; color: inherit; }
 .notes-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
 .note-card {
+  position: relative;
   background: var(--card);
   border: 1px solid var(--border-soft);
   border-radius: 12px;
@@ -174,6 +175,30 @@ input, textarea { font-family: inherit; color: inherit; }
 }
 .note-pin { color: var(--primary); }
 .note-pin svg { width: 11px; height: 11px; }
+
+.note-actions {
+  position: absolute;
+  bottom: 6px; right: 6px;
+  display: flex; gap: 2px;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity .15s ease, transform .15s ease;
+  background: var(--card);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 2px;
+  box-shadow: var(--shadow-sm);
+}
+.note-card:hover .note-actions { opacity: 1; transform: translateY(0); }
+.note-actions button {
+  width: 22px; height: 22px; border-radius: 5px;
+  display: grid; place-items: center;
+  color: var(--text-2);
+  transition: background .12s ease, color .12s ease;
+}
+.note-actions button svg { width: 12px; height: 12px; }
+.note-actions button:hover { background: var(--bg); color: var(--text); }
+.note-actions button.danger:hover { background: rgba(239,68,68,.1); color: var(--danger); }
 
 .empty {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -293,6 +318,17 @@ input, textarea { font-family: inherit; color: inherit; }
 .editor a { color: var(--primary); text-decoration: underline; }
 .editor img { max-width: 100%; border-radius: 8px; margin: 6px 0; }
 .editor input[type="checkbox"] { margin-right: 6px; }
+
+/* READ MODE */
+.editor-view[data-mode="read"] .toolbar { display: none; }
+.editor-view[data-mode="read"] #btn-edit { display: grid; }
+.editor-view[data-mode="read"] #btn-done { display: none; }
+.editor-view[data-mode="edit"] #btn-edit { display: none; }
+.editor-view[data-mode="edit"] #btn-done { display: grid; }
+.editor-view[data-mode="read"] .tag-input { display: none; }
+.editor-view[data-mode="read"] .tag button { display: none; }
+.editor-view[data-mode="read"] .editor { cursor: default; }
+.editor-view[data-mode="read"] .title-input { cursor: default; }
 
 .editor-footer {
   display: flex; justify-content: space-between;
