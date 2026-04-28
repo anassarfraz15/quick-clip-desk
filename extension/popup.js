@@ -215,14 +215,6 @@
     deleteNoteById(state.selectedId);
   }
 
-  function deleteCurrent() {
-    if (!state.selectedId) return;
-    if (!confirm('Delete this note?')) return;
-    state.notes = state.notes.filter(n => n.id !== state.selectedId);
-    state.selectedId = null;
-    persist();
-    backToList();
-  }
 
   function scheduleSave() {
     const n = state.notes.find(x => x.id === state.selectedId);
