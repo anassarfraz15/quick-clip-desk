@@ -158,9 +158,18 @@
   }
 
   // --- actions ---
-  function openNote(id) {
+  const editorView = document.querySelector('.editor-view');
+  function setMode(mode) {
+    editorView.dataset.mode = mode;
+    const editing = mode === 'edit';
+    editorEl.setAttribute('contenteditable', editing ? 'true' : 'false');
+    if (editing) titleInput.removeAttribute('readonly');
+    else titleInput.setAttribute('readonly', '');
+  }
+  function openNote(id, mode = 'read') {
     state.selectedId = id;
     app.dataset.view = 'editor';
+    setMode(mode);
     renderEditor();
     renderList();
   }
@@ -184,9 +193,26 @@
     };
     state.notes.unshift(n);
     persist();
-    openNote(n.id);
+    openNote(n.id, 'edit');
     setTimeout(() => titleInput.focus(), 60);
     return n;
+  }
+
+  function deleteNoteById(id) {
+    if (!confirm('Delete this note?')) return;
+    state.notes = state.notes.filter(n => n.id !== id);
+    if (state.selectedId === id) {
+      state.selectedId = null;
+      backToList();
+    } else {
+      renderList();
+    }
+    persist();
+  }
+
+  function deleteCurrent() {
+    if (!state.selectedId) return;
+    deleteNoteById(state.selectedId);
   }
 
   function deleteCurrent() {
