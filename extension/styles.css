@@ -319,6 +319,17 @@ input, textarea { font-family: inherit; color: inherit; }
 .editor img { max-width: 100%; border-radius: 8px; margin: 6px 0; }
 .editor input[type="checkbox"] { margin-right: 6px; }
 
+/* READ MODE */
+.editor-view[data-mode="read"] .toolbar { display: none; }
+.editor-view[data-mode="read"] #btn-edit { display: grid; }
+.editor-view[data-mode="read"] #btn-done { display: none; }
+.editor-view[data-mode="edit"] #btn-edit { display: none; }
+.editor-view[data-mode="edit"] #btn-done { display: grid; }
+.editor-view[data-mode="read"] .tag-input { display: none; }
+.editor-view[data-mode="read"] .tag button { display: none; }
+.editor-view[data-mode="read"] .editor { cursor: default; }
+.editor-view[data-mode="read"] .title-input { cursor: default; }
+
 .editor-footer {
   display: flex; justify-content: space-between;
   padding: 8px 14px;
