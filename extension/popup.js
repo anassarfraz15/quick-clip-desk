@@ -199,7 +199,6 @@
   }
 
   function deleteNoteById(id) {
-    if (!confirm('Delete this note?')) return;
     state.notes = state.notes.filter(n => n.id !== id);
     if (state.selectedId === id) {
       state.selectedId = null;
