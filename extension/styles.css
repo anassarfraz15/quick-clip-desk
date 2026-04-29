@@ -402,3 +402,13 @@ input, textarea { font-family: inherit; color: inherit; }
   transform: translate(-50%, -50%) rotate(0deg) scale(1);
   opacity: 1;
 }
+
+/* Save button "Saved" state */
+#btn-save { position: relative; transition: background-color .25s ease, color .25s ease; }
+#btn-save .btn-save-icon { display: inline-flex; align-items: center; justify-content: center; transition: opacity .2s ease, transform .2s ease; }
+#btn-save .btn-save-icon svg { width: 16px; height: 16px; }
+#btn-save .btn-save-icon-check { position: absolute; left: 12px; opacity: 0; transform: scale(.6); }
+#btn-save.is-saved .btn-save-icon:not(.btn-save-icon-check) { opacity: 0; transform: scale(.6); }
+#btn-save.is-saved .btn-save-icon-check { opacity: 1; transform: scale(1); }
+#btn-save.is-saved { background: #10B981; border-color: #10B981; color: #fff; }
+#btn-save .btn-save-label { transition: opacity .15s ease; }

@@ -246,6 +246,20 @@
     await persist();
     flashSaved();
     renderList();
+    showSavedButton();
+  }
+
+  function showSavedButton() {
+    const btn = document.getElementById('btn-save');
+    if (!btn) return;
+    const label = btn.querySelector('.btn-save-label');
+    btn.classList.add('is-saved');
+    if (label) label.textContent = 'Saved';
+    clearTimeout(showSavedButton._t);
+    showSavedButton._t = setTimeout(() => {
+      btn.classList.remove('is-saved');
+      if (label) label.textContent = 'Save Note';
+    }, 1600);
   }
 
   // --- chrome features ---
