@@ -24,14 +24,14 @@ const Index = () => {
   return (
     <main className="min-h-screen bg-[#F7F8FA] text-[#1F2937]">
       <div className="mx-auto max-w-3xl px-6 py-16">
-        <header className="flex items-center gap-3 mb-12">
+        <header className="flex flex-col items-center gap-3 mb-12">
           <div
             className="w-11 h-11 rounded-xl grid place-items-center text-white shadow-lg"
             style={{ backgroundColor: PRIMARY, boxShadow: `0 8px 20px ${PRIMARY}55` }}
           >
             <FileText className="w-5 h-5" />
           </div>
-          <div>
+          <div className="text-center">
             <h1 className="text-lg font-bold leading-tight">QuickNotes</h1>
             <p className="text-xs text-[#6B7280]">Your ideas, always with you.</p>
           </div>
@@ -105,7 +105,7 @@ const Index = () => {
         </section>
 
         <footer className="text-center text-xs text-[#6B7280] mt-12">
-          Built with care · Stores notes locally with chrome.storage
+          Created by Anas with <span className="text-red-500">❤️</span>
         </footer>
       </div>
     </main>
