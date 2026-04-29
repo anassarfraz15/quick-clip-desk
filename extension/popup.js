@@ -300,6 +300,17 @@
   }
 
   // --- toolbar commands ---
+  async function insertScreenshotIntoEditor() {
+    if (!chrome?.tabs?.captureVisibleTab) return;
+    try {
+      const dataUrl = await chrome.tabs.captureVisibleTab({ format: 'png' });
+      editorEl.focus();
+      document.execCommand('insertHTML', false,
+        `<p><img src="${dataUrl}" alt="screenshot" style="max-width:100%;border-radius:8px;" /></p>`);
+      markDirty();
+    } catch (e) { console.error(e); }
+  }
+
   function execCmd(cmd, arg) {
     editorEl.focus();
     if (cmd === 'checkbox') {
@@ -311,10 +322,13 @@
       document.execCommand('insertHTML', false, '<code>code</code>&nbsp;');
     } else if (cmd === 'quote') {
       document.execCommand('formatBlock', false, 'BLOCKQUOTE');
+    } else if (cmd === 'screenshot') {
+      insertScreenshotIntoEditor();
+      return;
     } else {
       document.execCommand(cmd, false, arg);
     }
-    scheduleSave();
+    markDirty();
   }
 
   // --- event wiring ---
@@ -370,10 +384,10 @@
     });
 
     $('#btn-edit').addEventListener('click', () => setMode('edit'));
-    $('#btn-done').addEventListener('click', () => setMode('read'));
+    $('#btn-save').addEventListener('click', saveCurrent);
 
-    titleInput.addEventListener('input', scheduleSave);
-    editorEl.addEventListener('input', scheduleSave);
+    titleInput.addEventListener('input', markDirty);
+    editorEl.addEventListener('input', markDirty);
 
     tagInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && tagInput.value.trim()) {
@@ -384,7 +398,7 @@
         n.tags = Array.from(new Set([...(n.tags || []), t]));
         tagInput.value = '';
         renderTags(n);
-        scheduleSave();
+        markDirty();
       }
     });
     tagsEl.addEventListener('click', (e) => {
@@ -394,23 +408,13 @@
       if (!n) return;
       n.tags = (n.tags || []).filter(t => t !== btn.dataset.tag);
       renderTags(n);
-      scheduleSave();
+      markDirty();
     });
 
     $('#toolbar').addEventListener('click', (e) => {
       const btn = e.target.closest('button[data-cmd]');
       if (!btn) return;
       execCmd(btn.dataset.cmd, btn.dataset.arg);
-    });
-
-    document.querySelectorAll('.action').forEach(b => {
-      b.addEventListener('click', () => {
-        const a = b.dataset.action;
-        if (a === 'note') newNote({ type: 'note' });
-        else if (a === 'link') saveLink();
-        else if (a === 'clip') clipSelection();
-        else if (a === 'screenshot') screenshot();
-      });
     });
 
     document.addEventListener('keydown', (e) => {
