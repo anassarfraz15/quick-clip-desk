@@ -86,7 +86,12 @@ const Index = () => {
 
         <header className="flex items-center justify-center gap-3 mb-12">
           <img src={logo} alt="QuickNotes logo" className="w-11 h-11 rounded-xl object-contain" />
-          <h1 className="text-lg font-bold leading-tight">QuickNotes</h1>
+          <div className="text-left">
+            <h1 className="text-lg font-bold leading-tight">QuickNotes</h1>
+            <p className="text-xs" style={{ color: t.muted }}>
+              Your ideas, always with you.
+            </p>
+          </div>
         </header>
 
         <section className="text-center mb-12">
