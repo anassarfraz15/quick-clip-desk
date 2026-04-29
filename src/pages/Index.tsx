@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Download, FileText, Link2, Scissors, Camera, Chrome, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/quicknotes-logo.png";
 
 const PRIMARY = "#7C5CFF";
 
@@ -84,18 +85,8 @@ const Index = () => {
         </button>
 
         <header className="flex items-center justify-center gap-3 mb-12">
-          <div
-            className="w-11 h-11 rounded-xl grid place-items-center text-white shadow-lg"
-            style={{ backgroundColor: PRIMARY, boxShadow: `0 8px 20px ${PRIMARY}55` }}
-          >
-            <FileText className="w-5 h-5" />
-          </div>
-          <div className="text-left">
-            <h1 className="text-lg font-bold leading-tight">QuickNotes</h1>
-            <p className="text-xs" style={{ color: t.muted }}>
-              Your ideas, always with you.
-            </p>
-          </div>
+          <img src={logo} alt="QuickNotes logo" className="w-11 h-11 rounded-xl object-contain" />
+          <h1 className="text-lg font-bold leading-tight">QuickNotes</h1>
         </header>
 
         <section className="text-center mb-12">
