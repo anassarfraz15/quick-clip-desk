@@ -331,11 +331,14 @@ input, textarea { font-family: inherit; color: inherit; }
 .editor-view[data-mode="read"] .title-input { cursor: default; }
 
 .editor-footer {
-  display: flex; justify-content: space-between;
+  display: flex; justify-content: space-between; align-items: center;
   padding: 8px 14px;
   font-size: 10.5px; color: var(--text-2);
   border-top: 1px solid var(--border-soft);
+  gap: 10px;
 }
+.editor-footer-meta { display: flex; gap: 12px; }
+.toolbar-spacer { flex: 1; }
 
 /* ACTION BAR */
 .action-bar {

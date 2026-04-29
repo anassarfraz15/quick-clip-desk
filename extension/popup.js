@@ -166,14 +166,27 @@
     if (editing) titleInput.removeAttribute('readonly');
     else titleInput.setAttribute('readonly', '');
   }
+
+  // Draft tracks unsaved state. Nothing is persisted until Save is clicked.
+  let draft = null;
+
   function openNote(id, mode = 'read') {
     state.selectedId = id;
+    const n = state.notes.find(x => x.id === id);
+    draft = n ? { id: n.id, isNew: false, dirty: false } : null;
     app.dataset.view = 'editor';
     setMode(mode);
     renderEditor();
     renderList();
   }
+
   function backToList() {
+    // Discard unsaved new notes
+    if (draft && draft.isNew) {
+      state.notes = state.notes.filter(n => n.id !== draft.id);
+    }
+    draft = null;
+    state.selectedId = null;
     app.dataset.view = 'list';
     renderList();
   }
@@ -191,9 +204,13 @@
       updatedAt: t,
       ...partial,
     };
+    // In-memory only — must click Save to persist
     state.notes.unshift(n);
-    persist();
-    openNote(n.id, 'edit');
+    state.selectedId = n.id;
+    draft = { id: n.id, isNew: true, dirty: false };
+    app.dataset.view = 'editor';
+    setMode('edit');
+    renderEditor();
     setTimeout(() => titleInput.focus(), 60);
     return n;
   }
@@ -202,10 +219,10 @@
     state.notes = state.notes.filter(n => n.id !== id);
     if (state.selectedId === id) {
       state.selectedId = null;
-      backToList();
-    } else {
-      renderList();
+      draft = null;
+      app.dataset.view = 'list';
     }
+    renderList();
     persist();
   }
 
@@ -214,19 +231,21 @@
     deleteNoteById(state.selectedId);
   }
 
+  function markDirty() {
+    if (draft) draft.dirty = true;
+  }
 
-  function scheduleSave() {
+  async function saveCurrent() {
     const n = state.notes.find(x => x.id === state.selectedId);
     if (!n) return;
     n.title = titleInput.value;
     n.body = editorEl.innerHTML;
     n.updatedAt = now();
     updatedEl.textContent = `Updated: ${fmtFull(n.updatedAt)}`;
-    clearTimeout(state.saveTimer);
-    state.saveTimer = setTimeout(async () => {
-      await persist();
-      flashSaved();
-    }, 250);
+    if (draft) { draft.isNew = false; draft.dirty = false; }
+    await persist();
+    flashSaved();
+    renderList();
   }
 
   // --- chrome features ---
@@ -281,6 +300,17 @@
   }
 
   // --- toolbar commands ---
+  async function insertScreenshotIntoEditor() {
+    if (!chrome?.tabs?.captureVisibleTab) return;
+    try {
+      const dataUrl = await chrome.tabs.captureVisibleTab({ format: 'png' });
+      editorEl.focus();
+      document.execCommand('insertHTML', false,
+        `<p><img src="${dataUrl}" alt="screenshot" style="max-width:100%;border-radius:8px;" /></p>`);
+      markDirty();
+    } catch (e) { console.error(e); }
+  }
+
   function execCmd(cmd, arg) {
     editorEl.focus();
     if (cmd === 'checkbox') {
@@ -292,10 +322,13 @@
       document.execCommand('insertHTML', false, '<code>code</code>&nbsp;');
     } else if (cmd === 'quote') {
       document.execCommand('formatBlock', false, 'BLOCKQUOTE');
+    } else if (cmd === 'screenshot') {
+      insertScreenshotIntoEditor();
+      return;
     } else {
       document.execCommand(cmd, false, arg);
     }
-    scheduleSave();
+    markDirty();
   }
 
   // --- event wiring ---
@@ -351,10 +384,10 @@
     });
 
     $('#btn-edit').addEventListener('click', () => setMode('edit'));
-    $('#btn-done').addEventListener('click', () => setMode('read'));
+    $('#btn-save').addEventListener('click', saveCurrent);
 
-    titleInput.addEventListener('input', scheduleSave);
-    editorEl.addEventListener('input', scheduleSave);
+    titleInput.addEventListener('input', markDirty);
+    editorEl.addEventListener('input', markDirty);
 
     tagInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && tagInput.value.trim()) {
@@ -365,7 +398,7 @@
         n.tags = Array.from(new Set([...(n.tags || []), t]));
         tagInput.value = '';
         renderTags(n);
-        scheduleSave();
+        markDirty();
       }
     });
     tagsEl.addEventListener('click', (e) => {
@@ -375,23 +408,13 @@
       if (!n) return;
       n.tags = (n.tags || []).filter(t => t !== btn.dataset.tag);
       renderTags(n);
-      scheduleSave();
+      markDirty();
     });
 
     $('#toolbar').addEventListener('click', (e) => {
       const btn = e.target.closest('button[data-cmd]');
       if (!btn) return;
       execCmd(btn.dataset.cmd, btn.dataset.arg);
-    });
-
-    document.querySelectorAll('.action').forEach(b => {
-      b.addEventListener('click', () => {
-        const a = b.dataset.action;
-        if (a === 'note') newNote({ type: 'note' });
-        else if (a === 'link') saveLink();
-        else if (a === 'clip') clipSelection();
-        else if (a === 'screenshot') screenshot();
-      });
     });
 
     document.addEventListener('keydown', (e) => {
