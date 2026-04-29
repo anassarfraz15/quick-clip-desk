@@ -166,14 +166,27 @@
     if (editing) titleInput.removeAttribute('readonly');
     else titleInput.setAttribute('readonly', '');
   }
+
+  // Draft tracks unsaved state. Nothing is persisted until Save is clicked.
+  let draft = null;
+
   function openNote(id, mode = 'read') {
     state.selectedId = id;
+    const n = state.notes.find(x => x.id === id);
+    draft = n ? { id: n.id, isNew: false, dirty: false } : null;
     app.dataset.view = 'editor';
     setMode(mode);
     renderEditor();
     renderList();
   }
+
   function backToList() {
+    // Discard unsaved new notes
+    if (draft && draft.isNew) {
+      state.notes = state.notes.filter(n => n.id !== draft.id);
+    }
+    draft = null;
+    state.selectedId = null;
     app.dataset.view = 'list';
     renderList();
   }
@@ -191,9 +204,13 @@
       updatedAt: t,
       ...partial,
     };
+    // In-memory only — must click Save to persist
     state.notes.unshift(n);
-    persist();
-    openNote(n.id, 'edit');
+    state.selectedId = n.id;
+    draft = { id: n.id, isNew: true, dirty: false };
+    app.dataset.view = 'editor';
+    setMode('edit');
+    renderEditor();
     setTimeout(() => titleInput.focus(), 60);
     return n;
   }
@@ -202,10 +219,10 @@
     state.notes = state.notes.filter(n => n.id !== id);
     if (state.selectedId === id) {
       state.selectedId = null;
-      backToList();
-    } else {
-      renderList();
+      draft = null;
+      app.dataset.view = 'list';
     }
+    renderList();
     persist();
   }
 
@@ -214,19 +231,21 @@
     deleteNoteById(state.selectedId);
   }
 
+  function markDirty() {
+    if (draft) draft.dirty = true;
+  }
 
-  function scheduleSave() {
+  async function saveCurrent() {
     const n = state.notes.find(x => x.id === state.selectedId);
     if (!n) return;
     n.title = titleInput.value;
     n.body = editorEl.innerHTML;
     n.updatedAt = now();
     updatedEl.textContent = `Updated: ${fmtFull(n.updatedAt)}`;
-    clearTimeout(state.saveTimer);
-    state.saveTimer = setTimeout(async () => {
-      await persist();
-      flashSaved();
-    }, 250);
+    if (draft) { draft.isNew = false; draft.dirty = false; }
+    await persist();
+    flashSaved();
+    renderList();
   }
 
   // --- chrome features ---
