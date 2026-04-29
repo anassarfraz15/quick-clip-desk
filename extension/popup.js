@@ -348,7 +348,7 @@
       e.currentTarget.classList.toggle('active', state.showPinnedOnly);
       renderList();
     });
-    $('#btn-search').addEventListener('click', () => $('#search-input').focus());
+    
     $('#btn-theme').addEventListener('click', async () => {
       const dark = document.documentElement.getAttribute('data-theme') === 'dark';
       if (dark) document.documentElement.removeAttribute('data-theme');

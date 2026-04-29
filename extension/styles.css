@@ -377,3 +377,28 @@ input, textarea { font-family: inherit; color: inherit; }
   letter-spacing: 0.2px;
 }
 .credit-heart { color: #EF4444; }
+
+/* Theme toggle smooth icon swap */
+.theme-toggle { position: relative; overflow: hidden; }
+.theme-toggle .theme-icon {
+  width: 18px; height: 18px;
+  position: absolute;
+  top: 50%; left: 50%;
+  transition: transform .35s cubic-bezier(.4,.0,.2,1), opacity .25s ease;
+}
+.theme-toggle .theme-icon-moon {
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  opacity: 1;
+}
+.theme-toggle .theme-icon-sun {
+  transform: translate(-50%, -50%) rotate(-90deg) scale(0);
+  opacity: 0;
+}
+[data-theme="dark"] .theme-toggle .theme-icon-moon {
+  transform: translate(-50%, -50%) rotate(90deg) scale(0);
+  opacity: 0;
+}
+[data-theme="dark"] .theme-toggle .theme-icon-sun {
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  opacity: 1;
+}
