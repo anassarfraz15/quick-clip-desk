@@ -1,4 +1,4 @@
-import { Download, FileText, Link2, Scissors, Camera, Sparkles } from "lucide-react";
+import { Download, FileText, Link2, Scissors, Camera, Chrome } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const PRIMARY = "#7C5CFF";
@@ -24,14 +24,14 @@ const Index = () => {
   return (
     <main className="min-h-screen bg-[#F7F8FA] text-[#1F2937]">
       <div className="mx-auto max-w-3xl px-6 py-16">
-        <header className="flex flex-col items-center gap-3 mb-12">
+        <header className="flex items-center justify-center gap-3 mb-12">
           <div
             className="w-11 h-11 rounded-xl grid place-items-center text-white shadow-lg"
             style={{ backgroundColor: PRIMARY, boxShadow: `0 8px 20px ${PRIMARY}55` }}
           >
             <FileText className="w-5 h-5" />
           </div>
-          <div className="text-center">
+          <div className="text-left">
             <h1 className="text-lg font-bold leading-tight">QuickNotes</h1>
             <p className="text-xs text-[#6B7280]">Your ideas, always with you.</p>
           </div>
@@ -42,7 +42,7 @@ const Index = () => {
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-5"
             style={{ backgroundColor: "#EFEBFF", color: PRIMARY }}
           >
-            <Sparkles className="w-3 h-3" />
+            <Chrome className="w-3 h-3" />
             Chrome Extension
           </div>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
