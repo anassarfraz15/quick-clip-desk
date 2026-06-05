@@ -3,7 +3,7 @@
   "name": "QuickNotes",
   "version": "1.0.0",
   "description": "Capture notes, links, clips and screenshots while you browse. Minimal, fast, beautiful.",
-  "permissions": ["storage", "activeTab", "tabs", "scripting"],
+  "permissions": ["storage", "activeTab", "tabs", "scripting", "clipboardWrite"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "QuickNotes",

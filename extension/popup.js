@@ -118,6 +118,9 @@
         </div>
         <div class="note-preview">${escapeHtml(plainPreview(n.body)) || '<em style="opacity:.6">Empty note</em>'}</div>
         <div class="note-actions">
+          <button data-act="copy" data-id="${n.id}" title="Copy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
           <button data-act="edit" data-id="${n.id}" title="Edit">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
           </button>
@@ -262,6 +265,86 @@
     }, 1600);
   }
 
+  // --- copy / paste helpers ---
+  const ALLOWED_TAGS = new Set(['B','STRONG','I','EM','U','UL','OL','LI','P','BR','H1','H2','H3','BLOCKQUOTE','CODE','PRE','A']);
+
+  function sanitizeHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const walk = (node) => {
+      const children = Array.from(node.childNodes);
+      for (const child of children) {
+        if (child.nodeType === 1) {
+          const el = child;
+          // strip all attributes except href on links
+          for (const attr of Array.from(el.attributes)) {
+            if (!(el.tagName === 'A' && attr.name === 'href')) {
+              el.removeAttribute(attr.name);
+            }
+          }
+          if (!ALLOWED_TAGS.has(el.tagName)) {
+            // unwrap: replace with its children
+            while (el.firstChild) node.insertBefore(el.firstChild, el);
+            node.removeChild(el);
+          } else {
+            walk(el);
+          }
+        } else if (child.nodeType === 8) {
+          node.removeChild(child); // comments
+        }
+      }
+    };
+    walk(tmp);
+    return tmp.innerHTML;
+  }
+
+  function handlePaste(e) {
+    e.preventDefault();
+    const dt = e.clipboardData;
+    if (!dt) return;
+    const html = dt.getData('text/html');
+    const text = dt.getData('text/plain');
+    let toInsert;
+    if (html) {
+      toInsert = sanitizeHtml(html);
+    } else {
+      toInsert = escapeHtml(text).replace(/\n/g, '<br>');
+    }
+    document.execCommand('insertHTML', false, toInsert);
+    markDirty();
+  }
+
+  async function copyNoteById(id) {
+    const n = state.notes.find(x => x.id === id);
+    if (!n) return;
+    const html = n.body || '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const text = (tmp.innerText || tmp.textContent || '').trim();
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': new Blob([html], { type: 'text/html' }),
+            'text/plain': new Blob([text], { type: 'text/plain' }),
+          }),
+        ]);
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
+    } catch {
+      try { await navigator.clipboard.writeText(text); } catch {}
+    }
+  }
+
+  function flashCopyButton(btn) {
+    if (!btn) return;
+    btn.classList.add('is-copied');
+    clearTimeout(btn._copyT);
+    btn._copyT = setTimeout(() => btn.classList.remove('is-copied'), 1400);
+  }
+
+
   // --- chrome features ---
   async function getActiveTab() {
     if (typeof chrome === 'undefined' || !chrome.tabs) return null;
@@ -384,13 +467,14 @@
       renderList();
     });
 
-    listEl.addEventListener('click', (e) => {
+    listEl.addEventListener('click', async (e) => {
       const actBtn = e.target.closest('button[data-act]');
       if (actBtn) {
         e.stopPropagation();
         const id = actBtn.dataset.id;
         if (actBtn.dataset.act === 'delete') deleteNoteById(id);
         else if (actBtn.dataset.act === 'edit') openNote(id, 'edit');
+        else if (actBtn.dataset.act === 'copy') { await copyNoteById(id); flashCopyButton(actBtn); }
         return;
       }
       const card = e.target.closest('.note-card');
@@ -399,9 +483,16 @@
 
     $('#btn-edit').addEventListener('click', () => setMode('edit'));
     $('#btn-save').addEventListener('click', saveCurrent);
+    $('#btn-copy').addEventListener('click', async (e) => {
+      if (!state.selectedId) return;
+      await copyNoteById(state.selectedId);
+      flashCopyButton(e.currentTarget);
+    });
 
     titleInput.addEventListener('input', markDirty);
     editorEl.addEventListener('input', markDirty);
+    editorEl.addEventListener('paste', handlePaste);
+
 
     tagInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && tagInput.value.trim()) {

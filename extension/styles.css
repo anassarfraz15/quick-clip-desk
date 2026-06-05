@@ -412,3 +412,14 @@ input, textarea { font-family: inherit; color: inherit; }
 #btn-save.is-saved .btn-save-icon-check { opacity: 1; transform: scale(1); }
 #btn-save.is-saved { background: #10B981; border-color: #10B981; color: #fff; }
 #btn-save .btn-save-label { transition: opacity .15s ease; }
+
+/* Copy button icon swap */
+#btn-copy { position: relative; overflow: hidden; transition: color .2s ease, background-color .2s ease; }
+#btn-copy svg { width: 16px; height: 16px; transition: opacity .2s ease, transform .2s ease; }
+#btn-copy .copy-icon-check { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(.6); opacity: 0; color: #10B981; }
+#btn-copy .copy-icon-default { transition: opacity .2s ease, transform .2s ease; }
+#btn-copy.is-copied .copy-icon-default { opacity: 0; transform: scale(.6); }
+#btn-copy.is-copied .copy-icon-check { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+/* Note card copy action flash */
+.note-actions button.is-copied { color: #10B981; }
