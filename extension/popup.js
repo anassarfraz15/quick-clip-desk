@@ -467,13 +467,14 @@
       renderList();
     });
 
-    listEl.addEventListener('click', (e) => {
+    listEl.addEventListener('click', async (e) => {
       const actBtn = e.target.closest('button[data-act]');
       if (actBtn) {
         e.stopPropagation();
         const id = actBtn.dataset.id;
         if (actBtn.dataset.act === 'delete') deleteNoteById(id);
         else if (actBtn.dataset.act === 'edit') openNote(id, 'edit');
+        else if (actBtn.dataset.act === 'copy') { await copyNoteById(id); flashCopyButton(actBtn); }
         return;
       }
       const card = e.target.closest('.note-card');
@@ -482,9 +483,16 @@
 
     $('#btn-edit').addEventListener('click', () => setMode('edit'));
     $('#btn-save').addEventListener('click', saveCurrent);
+    $('#btn-copy').addEventListener('click', async (e) => {
+      if (!state.selectedId) return;
+      await copyNoteById(state.selectedId);
+      flashCopyButton(e.currentTarget);
+    });
 
     titleInput.addEventListener('input', markDirty);
     editorEl.addEventListener('input', markDirty);
+    editorEl.addEventListener('paste', handlePaste);
+
 
     tagInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && tagInput.value.trim()) {
