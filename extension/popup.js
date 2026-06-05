@@ -265,6 +265,86 @@
     }, 1600);
   }
 
+  // --- copy / paste helpers ---
+  const ALLOWED_TAGS = new Set(['B','STRONG','I','EM','U','UL','OL','LI','P','BR','H1','H2','H3','BLOCKQUOTE','CODE','PRE','A']);
+
+  function sanitizeHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const walk = (node) => {
+      const children = Array.from(node.childNodes);
+      for (const child of children) {
+        if (child.nodeType === 1) {
+          const el = child;
+          // strip all attributes except href on links
+          for (const attr of Array.from(el.attributes)) {
+            if (!(el.tagName === 'A' && attr.name === 'href')) {
+              el.removeAttribute(attr.name);
+            }
+          }
+          if (!ALLOWED_TAGS.has(el.tagName)) {
+            // unwrap: replace with its children
+            while (el.firstChild) node.insertBefore(el.firstChild, el);
+            node.removeChild(el);
+          } else {
+            walk(el);
+          }
+        } else if (child.nodeType === 8) {
+          node.removeChild(child); // comments
+        }
+      }
+    };
+    walk(tmp);
+    return tmp.innerHTML;
+  }
+
+  function handlePaste(e) {
+    e.preventDefault();
+    const dt = e.clipboardData;
+    if (!dt) return;
+    const html = dt.getData('text/html');
+    const text = dt.getData('text/plain');
+    let toInsert;
+    if (html) {
+      toInsert = sanitizeHtml(html);
+    } else {
+      toInsert = escapeHtml(text).replace(/\n/g, '<br>');
+    }
+    document.execCommand('insertHTML', false, toInsert);
+    markDirty();
+  }
+
+  async function copyNoteById(id) {
+    const n = state.notes.find(x => x.id === id);
+    if (!n) return;
+    const html = n.body || '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const text = (tmp.innerText || tmp.textContent || '').trim();
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': new Blob([html], { type: 'text/html' }),
+            'text/plain': new Blob([text], { type: 'text/plain' }),
+          }),
+        ]);
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
+    } catch {
+      try { await navigator.clipboard.writeText(text); } catch {}
+    }
+  }
+
+  function flashCopyButton(btn) {
+    if (!btn) return;
+    btn.classList.add('is-copied');
+    clearTimeout(btn._copyT);
+    btn._copyT = setTimeout(() => btn.classList.remove('is-copied'), 1400);
+  }
+
+
   // --- chrome features ---
   async function getActiveTab() {
     if (typeof chrome === 'undefined' || !chrome.tabs) return null;
